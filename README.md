@@ -6,11 +6,11 @@ Cloud-Native Server Monitoring API with Per-Instance Alerting and Push Model
 git clone https://github.com/NightShadeNova/serverMonitoring.git
 cd serverMonitoring
 
-2. Create and activate virtual environment
+3. Create and activate virtual environment
 python3 -m venv venv
 source venv/bin/activate
 
-3. Install Dependencies
+4. Install Dependencies
 pip install -r requirements.txt
 
 ## PostgreSQL config
@@ -25,8 +25,8 @@ export DB_NAME='monitoring'
 export DB_USER='nova'
 export DB_PASSWORD='root'
 
-export DJANGO_SECRET_KEY='<YOUR_RANDOM_SECRET_KEY>' 
-export EMAIL_HOST_USER='your.monitoring.sender@gmail.com' 
+export DJANGO_SECRET_KEY='<YOUR_RANDOM_SECRET_KEY>'
+export EMAIL_HOST_USER='your.monitoring.sender@gmail.com'
 export EMAIL_PASSWORD='YOUR_GENERATED_APP_PASSWORD'
 export ALERT_RECIPIENT_EMAIL='your.personal.inbox@example.com'
 
