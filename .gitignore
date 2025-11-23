@@ -1,0 +1,17 @@
+
+*.sqlite3
+
+venv/
+.venv/
+pyenv.cfg
+
+__pycache__/
+*.pyc
+*.log
+
+/server-monitoring/monitoring/local_settings.py
+/server-monitoring/monitoring/secret_settings.py
+
+.DS_Store
+.idea/
+.vscode/

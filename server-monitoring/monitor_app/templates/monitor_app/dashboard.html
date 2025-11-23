@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="container-fluid">
+        <h2 class="mb-4">System Overview</h2>
+        <div class="row" id="status-cards-container"></div>
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card shadow mb-4">
+                    <div class="card-header justify-content-between align-items-center">Historical Metrics
+                        <select id="server-select" class="form-select w-auto">
+                            <option value="">All Instances</option>
+                            {% for instance in server_instances %}
+                                <option value="{{ instance }}">{{ instance }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="metricChart" style="height: 500px;"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card shadow mb-4">
+                    <div class="card-header bg-danger text-white">Alerts</div>
+                    <ul class="list-group list-group-flush" id="alerts-list">
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+
+    let metricsChart = null;
+
+    function updateLiveMetrics(){
+        fetch('/api/v1/metrics/latest/')
+        .then(function(response){
+            if (!response.ok){
+                throw new Error("Response Status: " + response.status);
+            }
+            return response.json();
+        })
+        .then(function(data){
+            var statusContainer = document.getElementById('status-cards-container');
+            statusContainer.innerHTML = '';
+            
+            data.forEach(function(metric){
+                var timeStr = new Date(metric.timing).toLocaleTimeString();
+                var html = `
+                <div class="col-md-3 mb-4">
+                    <div class="card shadow">
+                        <div class="card-body">
+                            <h5 class="card-title">${metric.instance_name}</h5>
+                            <p class="card-text">CPU: ${metric.cpu}%</p>
+                            <p class="card-text">Memory: ${metric.memory}%</p>
+                            <p class="card-text">Disk: ${metric.disk}%</p>
+                            <p class="card-text small">Time: ${timeStr}</p>
+                        </div>
+                    </div>
+                </div>`;
+                statusContainer.innerHTML += html;
+            });
+        })
+        .catch(function(error){
+            console.error("Error while fetching: ", error);
+        })
+    }
+
+function fetchAndRenderChart(instanceName){
+    fetch('/api/v1/metrics/timeseries/?instance=' + instanceName)
+        .then(function(response){
+            if (!response.ok) {
+                throw new Error('Error: ' + response.status);
+            }
+            return response.json();
+        })
+        .then(function(data){
+            if (metricsChart){
+                metricsChart.destroy();
+            }
+            var canvas = document.getElementById('metricChart');
+
+            if (!canvas){
+                console.error("Canvas Error");
+                return;
+            }
+            var config = {type:'line', data: {
+                labels: data.labels,
+                datasets: data.datasets.map(function(dataset){
+                    return {
+                        label: dataset.label,
+                        data: dataset.data
+                    };
+                }) 
+            },
+            options: {maintainAspectRatio: false}
+            };
+        metricsChart = new Chart(canvas, config);
+        })
+        .catch(function(error){
+            console.error("Error fetching: ", error)
+        })
+    }
+
+function alertFeed(){
+    fetch('/api/v1/alerts/active')
+        .then(function(response){
+            if (!response.ok){
+                throw new Error('Response Status: ' + response.status);
+            }
+            return response.json();
+        })
+        .then(function(data){
+            var alertList = document.getElementById('alerts-list');
+            if (!alertList) {
+                console.error("Container not Found");
+                return;
+            }
+            alertList.innerHTML= '';
+            data.forEach(function(alert){
+                var alertTime = new Date(alert.trigger_time).toLocaleString();
+                var html = `
+                <li class="list-group-item justify-content-between align-items-start">
+                    <div class="ms-2 me-auto">
+                        <div class="fw-bold text-danger">${alert.metric_type.toUpperCase()} usage on ${alert.server_instance}</div>
+                        Value: ${alert.value}%
+                    </div>
+                    <span class="badge bg-secondary">${alertTime}</span>
+                </li>`;
+                alertList.innerHTML += html
+            });  
+        })
+        .catch(function(error){
+            console.error('Error fetching: ', error);
+        });
+}
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    const serverSelect = document.getElementById('server-select');
+    updateLiveMetrics();
+    alertFeed();
+    if (serverSelect){
+        serverSelect.addEventListener('change', function(event){
+            const instanceName = event.target.value;
+            fetchAndRenderChart(instanceName);
+        });
+        fetchAndRenderChart(serverSelect.value);
+        setInterval(updateLiveMetrics, 10000);
+        setInterval(alertFeed, 20000);
+    }
+    else {
+        console.error("server-select not found")
+    }
+});
+</script>
+</body>
