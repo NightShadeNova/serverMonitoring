@@ -1,5 +1,6 @@
 # serverMonitoring
-Cloud-Native Server Monitoring API with Per-Instance Alerting and Push Model
+### Cloud-Native Server Monitoring API with Per-Instance Alerting and Push Model
+##### Implements a scalable, secure, and separate server monitoring pipeline using the Push Model (similar to a Prometheus Pushgateway) to collect real time system metrics and trigger immediate email alerts based on custom thresholds
 
 ## Local Setup
 #### Clone Repository 
