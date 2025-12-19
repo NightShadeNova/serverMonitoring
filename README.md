@@ -45,3 +45,5 @@ Find server config, click on add server config, set server instance to hostname 
 ## Final Starting
 #### Run the metrics pusher loop(update your project path first)  
 nohup ./run_metrics_loop.sh &
+<img width="1283" height="1358" alt="dashboard" src="https://github.com/user-attachments/assets/3f43c82c-1fdb-4668-8863-756d631d82d5" />
+<img width="637" height="314" alt="Screenshot_20251002_005436" src="https://github.com/user-attachments/assets/ffd6b21a-83cd-49ba-ad0b-146f601e14ce" />
