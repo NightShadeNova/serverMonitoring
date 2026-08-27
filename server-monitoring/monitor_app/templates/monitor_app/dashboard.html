@@ -10,6 +10,7 @@
 <body>
     <div class="container-fluid">
         <h2 class="mb-4">System Overview</h2>
+        <div id="error-banner" class="alert alert-danger d-none" role="alert"></div>
         <div class="row" id="status-cards-container"></div>
         <div class="row">
             <div class="col-md-8">
@@ -44,6 +45,16 @@
 
     let metricsChart = null;
 
+    function showError(msg) {
+        var banner = document.getElementById('error-banner');
+        banner.textContent = msg;
+        banner.classList.remove('d-none');
+    }
+
+    function hideError() {
+        document.getElementById('error-banner').classList.add('d-none');
+    }
+
     function updateLiveMetrics(){
         fetch('/api/v1/metrics/latest/')
         .then(function(response){
@@ -53,12 +64,12 @@
             return response.json();
         })
         .then(function(data){
+            hideError();
             var statusContainer = document.getElementById('status-cards-container');
-            statusContainer.innerHTML = '';
-            
+            var html = '';
             data.forEach(function(metric){
                 var timeStr = new Date(metric.timing).toLocaleTimeString();
-                var html = `
+                html += `
                 <div class="col-md-3 mb-4">
                     <div class="card shadow">
                         <div class="card-body">
@@ -70,10 +81,11 @@
                         </div>
                     </div>
                 </div>`;
-                statusContainer.innerHTML += html;
             });
+            statusContainer.innerHTML = html;
         })
         .catch(function(error){
+            showError("Failed to load server metrics. Is the API running?");
             console.error("Error while fetching: ", error);
         })
     }
@@ -87,6 +99,7 @@ function fetchAndRenderChart(instanceName){
             return response.json();
         })
         .then(function(data){
+            hideError();
             if (metricsChart){
                 metricsChart.destroy();
             }
@@ -110,6 +123,7 @@ function fetchAndRenderChart(instanceName){
         metricsChart = new Chart(canvas, config);
         })
         .catch(function(error){
+            showError("Failed to load historical metrics.");
             console.error("Error fetching: ", error)
         })
     }
@@ -123,15 +137,16 @@ function alertFeed(){
             return response.json();
         })
         .then(function(data){
+            hideError();
             var alertList = document.getElementById('alerts-list');
             if (!alertList) {
                 console.error("Container not Found");
                 return;
             }
-            alertList.innerHTML= '';
+            var html = '';
             data.forEach(function(alert){
                 var alertTime = new Date(alert.trigger_time).toLocaleString();
-                var html = `
+                html += `
                 <li class="list-group-item justify-content-between align-items-start">
                     <div class="ms-2 me-auto">
                         <div class="fw-bold text-danger">${alert.metric_type.toUpperCase()} usage on ${alert.server_instance}</div>
@@ -139,10 +154,11 @@ function alertFeed(){
                     </div>
                     <span class="badge bg-secondary">${alertTime}</span>
                 </li>`;
-                alertList.innerHTML += html
-            });  
+            });
+            alertList.innerHTML = html;
         })
         .catch(function(error){
+            showError("Failed to load alerts.");
             console.error('Error fetching: ', error);
         });
 }
@@ -160,6 +176,9 @@ document.addEventListener('DOMContentLoaded', function() {
         fetchAndRenderChart(serverSelect.value);
         setInterval(updateLiveMetrics, 10000);
         setInterval(alertFeed, 20000);
+        setInterval(function(){
+            fetchAndRenderChart(serverSelect.value);
+        }, 300000);
     }
     else {
         console.error("server-select not found")
