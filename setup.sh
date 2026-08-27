@@ -2,7 +2,7 @@
 #Change INTERVAL_SECONDS value for how often you want the script to send metrics.
 #Change PROJECT_ROOT to where the project is located
 INTERVAL_SECONDS=15
-PROJECT_ROOT="/home/nova/projects" 
+PROJECT_ROOT="/home/nova/projects/server-monitor" 
 
 PY_EXEC="$PROJECT_ROOT/server-monitoring/venv/bin/python" 
 PUSH="$PROJECT_ROOT/metrics_push.py"

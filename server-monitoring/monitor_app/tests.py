@@ -1,4 +1,6 @@
-from django.test import TestCase, Client
+from django.test import TestCase
+from rest_framework.test import APIClient
+from rest_framework.authtoken.models import Token
 from .models import Record, Alert, Threshold
 
 
@@ -41,7 +43,12 @@ class ThresholdModelTest(TestCase):
 
 class PushEndpointTest(TestCase):
     def setUp(self):
-        self.client = Client()
+        self.client = APIClient()
+        self.user = Token.objects.create_user(
+            username="testuser", email="test@test.com", password="testpass123"
+        )
+        self.token = self.user.auth_token
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.token.key}")
 
     def test_push_valid_metrics(self):
         response = self.client.post(
@@ -52,19 +59,33 @@ class PushEndpointTest(TestCase):
                 "disk_usage": 60.0,
                 "memory_usage": 70.0,
             },
-            content_type="application/json",
+            format="json",
         )
         self.assertEqual(response.status_code, 201)
         self.assertEqual(Record.objects.count(), 1)
 
-    def test_push_invalid_json(self):
+    def test_push_unauthenticated(self):
+        unauth_client = APIClient()
+        response = unauth_client.post(
+            "/api/v1/metrics/push/",
+            data={
+                "instance_name": "test",
+                "cpu_usage": 45.0,
+                "disk_usage": 60.0,
+                "memory_usage": 70.0,
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, 401)
+
+    def test_push_missing_field(self):
         response = self.client.post(
             "/api/v1/metrics/push/",
-            data="not json",
-            content_type="text/plain",
+            data={"instance_name": "test"},
+            format="json",
         )
         self.assertEqual(response.status_code, 400)
 
     def test_get_not_allowed(self):
         response = self.client.get("/api/v1/metrics/push/")
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 405)
