@@ -4,7 +4,7 @@
 
 ## Local Setup
 #### Clone Repository 
-git clone https://github.com/NightShadeNova/serverMonitoring.git  
+git clone https://github.com/prakashaditya02/serverMonitoring.git  
 cd serverMonitoring
 
 #### Create and activate virtual environment
