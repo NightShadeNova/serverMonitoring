@@ -1,4 +1,6 @@
 #!/bin/bash
 set -euo pipefail
-cpu=$(top -bn1 | grep "Cpu(s)" | awk '{print $2}' | cut -d'%' -f1)
-echo $cpu
+read -r _ user nice system idle _ < /proc/stat
+total=$((user + nice + system + idle))
+used=$((user + nice + system))
+echo $((used * 100 / total))

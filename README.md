@@ -47,7 +47,16 @@ python server-monitoring/manage.py migrate
 python server-monitoring/manage.py createsuperuser
 ```
 
-4. Configure
+4. Create API token for metrics push authentication
+```
+python server-monitoring/manage.py drf_create_token <your-username>
+```
+This prints a token like `9944b09199c62bcf9418ad846dd0e4bbdfc6ee4b`. Add it to your env:
+```
+export METRICS_API_TOKEN='your-token-here'
+```
+
+5. Configure
 Start server - `python server-monitoring/manage.py runserver`
 Access Admin - http://127.0.0.1:8000/admin/
 Find Threshold, click "Add threshold", set server instance to match the hostname returned by `socket.gethostname()` on your monitored machine.
