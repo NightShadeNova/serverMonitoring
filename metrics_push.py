@@ -20,7 +20,7 @@ def push_metrics(metrics):
         print("Error while pushing metrics: ", e)
         return None
 
-script_path = '/home/nova/Documents/Projects/scripts/'
+script_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'scripts')
 
 getcpu = run_script(os.path.join(script_path, 'cpu.sh'))
 getdisk= run_script(os.path.join(script_path, 'disk.sh'))

@@ -83,8 +83,6 @@ class MetricsFetch(APIView):
         if instance_name and instance_name.lower() != 'all':
             queryset = queryset.filter(instance_name=instance_name)
             
-        val = ['timestamp']
-        
         data = queryset.annotate(timestamp=TruncHour('timing')).values('timestamp').annotate(cpu_avg=Avg('cpu'), mem_avg=Avg('memory'), disk_avg=Avg('disk')).order_by('timestamp')
         serializer = MetricSerializer(data, many=True)
         chart_data = {
